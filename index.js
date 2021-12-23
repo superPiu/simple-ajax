@@ -1,7 +1,7 @@
 document.getElementById("search").onclick = function(){
     let params = {
         method:"get",
-        url:"http://localhost:5000/user/list",
+        url:"http://localhost:5001/user/list",
         data:"pageSize=10&pageNo=1",
         success:function(res){
             console.log(res)
@@ -14,7 +14,7 @@ document.getElementById("search").onclick = function(){
 document.getElementById("add").onclick = function(){
     let params = {
         method:"post",
-        url:"http://localhost:5000/user",
+        url:"http://localhost:5001/user",
         data:{
             name:"大大王",
             age:23
@@ -31,7 +31,7 @@ document.getElementById("add").onclick = function(){
 document.getElementById("modify").onclick = function(){
     let params = {
         method:"put",
-        url:"http://localhost:5000/user",
+        url:"http://localhost:5001/user",
         data:{
             id:22,
             name:"大大王",
@@ -48,7 +48,7 @@ document.getElementById("modify").onclick = function(){
 document.getElementById("delete").onclick = function(){
     let params = {
         method:"delete",
-        url:"http://localhost:5000/user",
+        url:"http://localhost:5001/user",
         data:{
             id:23
         },

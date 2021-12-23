@@ -13,24 +13,25 @@ function request(xhr,opt){
     
     // XMLHttpRequest 超时
     xhr.ontimeout = function () {
-        xhr.abort()
-        if(typeof opt.finaly == Object){
-            finaly(xhr.status)
+        //xhr.abort()
+        if(typeof opt.error === 'function'){
+            opt.error(xhr.status)
         }else{
             console.log('请求超时~')
         }
     };
     xhr.onreadystatechange = function(){
         if(xhr.readyState !== 4) return;
-        if(xhr.status === 200){
-            if(typeof opt.success == 'function'){
+        typeof opt.complete === 'function' && opt.complete(xhr,xhr.statusText) 
+        if(xhr.status >= 200 && xhr.status <400){
+            if(typeof opt.success === 'function'){
                 opt.success(xhr.responseText)
             }else{
                 console.log('请求成功~')
             }
         }else{
-            if(typeof opt.finaly == "function"){
-                opt.finaly(xhr.status)
+            if(typeof opt.error === "function"){
+                opt.error(xhr.status)
             }else{
                 console.log('请求出错~')
             }
@@ -55,12 +56,14 @@ function ajax(option){
         method:'GET',
         url:'',
         data:null,
+        dataType:'json',
         async:true,
         delay:0,
         header:{},
-        timeout:10000,
+        timeout:30000,
         success:null,
-        finaly:null
+        error:null,
+        complete:null
     }
     const opt = Object.assign(defaultOpt,option);
 
