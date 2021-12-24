@@ -25,7 +25,11 @@ function request(xhr,opt){
         typeof opt.complete === 'function' && opt.complete(xhr,xhr.statusText) 
         if(xhr.status >= 200 && xhr.status <400){
             if(typeof opt.success === 'function'){
-                opt.success(xhr.responseText)
+                let data = xhr.responseText;
+                if(opt.dataType=="json"){
+                    data=JSON.parse(data);
+                }
+                opt.success(data)
             }else{
                 console.log('请求成功~')
             }
@@ -61,24 +65,50 @@ function ajax(option){
         delay:0,
         header:{},
         timeout:30000,
-        success:null,
-        error:null,
-        complete:null
+        success:Function.prototype,
+        error:Function.prototype,
+        complete:Function.prototype
     }
     const opt = Object.assign(defaultOpt,option);
 
-    const xhr = new XMLHttpRequest();
-    xhr.timeout = opt.timeout;
-    //设置请求头
-    for (key in opt.header) {
-        xhr.setRequestHeader(key, opt.header[key])
-    }
-    if(opt.delay > 0){ //处理延时请求
-        setTimeout(()=>{
-            request(xhr,opt)
-        },opt.delay)
+    //处理jsonp请求
+    if(opt.dataType.toLowerCase() === 'jsonp'){   
+        jsonpFun(opt)
     }else{
-        request(xhr,opt)
+        const xhr = new XMLHttpRequest();
+        xhr.timeout = opt.timeout;
+        //设置请求头
+        for (key in opt.header) {
+            xhr.setRequestHeader(key, opt.header[key])
+        }
+        if(opt.delay > 0){ //处理延时请求
+            setTimeout(()=>{
+                request(xhr,opt)
+            },opt.delay)
+        }else{
+            request(xhr,opt)
+        }
     }
 
+}
+function jsonpFun(opt){
+    const script = document.createElement('script');
+    const data = formartData(opt.data)
+    const funNameSuccess = randomString(10)
+    window[funNameSuccess] = function(data){
+        defaults.success(data);
+    }
+    script.src = `${opt.url}?callback=${funNameSuccess}&${data}`;
+    document.body.appendChild(script);
+}
+/**
+ *  @param {number} [e] 字符串长度
+ */
+function randomString(e) {    
+    e = e || 32;
+    var t = "ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678",
+    a = t.length,
+    n = "";
+    for (i = 0; i < e; i++) n += t.charAt(Math.floor(Math.random() * a));
+    return n
 }
