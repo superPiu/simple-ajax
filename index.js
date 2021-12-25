@@ -21,7 +21,7 @@ document.getElementById("add").onclick = function(){
         },
         success:function(res){
             console.log(res)
-            alert(JSON.parse(res).responseMsg)
+            alert(res.responseMsg)
         }
 
     }
@@ -39,7 +39,7 @@ document.getElementById("modify").onclick = function(){
         },
         success:function(res){
             console.log(res)
-            alert(JSON.parse(res).responseMsg)
+            alert(res.responseMsg)
         }
 
     }
@@ -54,7 +54,24 @@ document.getElementById("delete").onclick = function(){
         },
         success:function(res){
             console.log(res)
-            alert(JSON.parse(res).responseMsg)
+            alert(res.responseMsg)
+        }
+
+    }
+    ajax(params)
+}
+document.getElementById("jsonpGet").onclick = function(){
+    let params = {
+        method:"get",
+        dataType:'jsonp',
+        url:"http://localhost:5001/user/list",
+        data:{
+            pageSize:23,
+            pageNo:1
+        },
+        success:function(res){
+            console.log(res)
+            alert(res.responseMsg)
         }
 
     }

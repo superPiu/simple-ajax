@@ -72,43 +72,47 @@ function ajax(option){
     const opt = Object.assign(defaultOpt,option);
 
     //处理jsonp请求
-    if(opt.dataType.toLowerCase() === 'jsonp'){   
-        jsonpFun(opt)
-    }else{
-        const xhr = new XMLHttpRequest();
-        xhr.timeout = opt.timeout;
-        //设置请求头
-        for (key in opt.header) {
-            xhr.setRequestHeader(key, opt.header[key])
-        }
-        if(opt.delay > 0){ //处理延时请求
-            setTimeout(()=>{
+    
+    const xhr = new XMLHttpRequest();
+    xhr.timeout = opt.timeout;
+    //设置请求头
+    for (key in opt.header) {
+        xhr.setRequestHeader(key, opt.header[key])
+    }
+    if(opt.delay > 0){ //处理延时请求
+        setTimeout(()=>{
+            if(opt.dataType.toLowerCase() === 'jsonp'){   
+                jsonpFun(opt)
+            }else{
                 request(xhr,opt)
-            },opt.delay)
+            }  
+        },opt.delay)
+    }else{
+        if(opt.dataType.toLowerCase() === 'jsonp'){   
+            jsonpFun(opt)
         }else{
             request(xhr,opt)
-        }
+        } 
     }
-
 }
 function jsonpFun(opt){
     const script = document.createElement('script');
     const data = formartData(opt.data)
     const funNameSuccess = randomString(10)
     window[funNameSuccess] = function(data){
-        defaults.success(data);
+        opt.success(data);
     }
     script.src = `${opt.url}?callback=${funNameSuccess}&${data}`;
     document.body.appendChild(script);
 }
 /**
- *  @param {number} [e] 字符串长度
+ *  @param {number} [len] 字符串长度
  */
-function randomString(e) {    
-    e = e || 32;
-    var t = "ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678",
-    a = t.length,
-    n = "";
-    for (i = 0; i < e; i++) n += t.charAt(Math.floor(Math.random() * a));
-    return n
+function randomString(len) {    
+    len = len || 32;
+    var str = "ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678",
+    strLen = str.length,
+    randomStr = "";
+    for (i = 0; i < len; i++) randomStr += str.charAt(Math.floor(Math.random() * strLen));
+    return randomStr
 }
