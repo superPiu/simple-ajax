@@ -17,8 +17,8 @@ function ajax(param) {
         let xhr = null;
         const params = Object.assign(defaultOpt,param);
         const requestType = params.dataType === 'jsonp' ? 'jsonpReq' : 'xhrReq';
-         //处理data入参,支持字符串形式和对象形式
-         Ajax.prototype.formartData = function(data){
+        //处理data入参,支持字符串形式和对象形式
+        Ajax.prototype.formartData = function(data){
             if(typeof data === 'object'){
                 let arr = []
                 for(param in data){
@@ -38,6 +38,11 @@ function ajax(param) {
             randomStr = "";
             for (i = 0; i < len; i++) randomStr += str.charAt(Math.floor(Math.random() * strLen));
             return randomStr
+        }
+        Ajax.prototype.handleTimeout = function(){
+            this.timer = setTimeout(function(){
+                params.error('请求超时');
+            },params.timeout)
         }
         //xmlHTTPRequest 请求对象,包含创建和取消两个方法
         this.xhrReq = {
@@ -59,10 +64,12 @@ function ajax(param) {
                     xhr.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
                     xhr.send(data);
                 }
+                params.timeout && this.handleTimeout();
                 xhr.onreadystatechange = function(){
                     if(xhr.readyState !== 4) return;
                     typeof params.complete === 'function' && params.complete(xhr,xhr.statusText) 
                     if(xhr.status >= 200 && xhr.status <400){
+                        clearTimeout(this.timer)
                         let data = xhr.responseText;
                         if(params.dataType=="json"){
                             data=JSON.parse(data);
@@ -93,6 +100,7 @@ function ajax(param) {
                 }
                 script.src = `${params.url}?callback=${funNameSuccess}&${data}`;
                 document.body.appendChild(script);
+                params.timeout && this.handleTimeout();
             },
             abort:function(){
                 params.success = null;
