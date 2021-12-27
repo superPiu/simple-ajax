@@ -30,7 +30,7 @@ app.use(bodyParser.urlencoded({extended:false}))
 
     }
     if(callback){
-        //res.send(`${callback}(${JSON.stringify(resData)})`)
+        res.send(`${callback}(${JSON.stringify(resData)})`)
     }else{
         res.send(resData);
     }
