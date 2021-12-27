@@ -71,7 +71,10 @@ document.getElementById("jsonpGet").onclick = function(){
         },
         success:function(res){
             console.log(res)
-            alert(res.responseMsg)
+            alert(JSON.stringify(res))
+        },
+        error:function(e){
+            alert(e.message)
         }
 
     }

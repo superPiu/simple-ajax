@@ -1,118 +1,140 @@
-function request(xhr,opt){
-    const data = formartData(opt.data)
-    if(opt.method.toLowerCase() === 'get'){
-        opt.url += ('?'+ data)
-        xhr.open(opt.method,opt.url,opt.async)
-        xhr.send();
-    }else{
-        xhr.open(opt.method,opt.url,opt.async)
-        // 请求的请求头
-        xhr.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
-        xhr.send(data);
-    }
-    
-    // XMLHttpRequest 超时
-    xhr.ontimeout = function () {
-        //xhr.abort()
-        if(typeof opt.error === 'function'){
-            opt.error(xhr.status)
-        }else{
-            console.log('请求超时~')
+function ajax(param) {
+    function Ajax(param) {
+        this.defaultOpt = {
+            method:'GET',
+            url:'',
+            data:null,
+            dataType:'json',
+            async:true,
+            jsonpCallback:'',
+            delay:0,
+            header:{},
+            timeout:0,
+            success:Function.prototype,
+            error:Function.prototype,
+            complete:Function.prototype
         }
-    };
-    xhr.onreadystatechange = function(){
-        if(xhr.readyState !== 4) return;
-        typeof opt.complete === 'function' && opt.complete(xhr,xhr.statusText) 
-        if(xhr.status >= 200 && xhr.status <400){
-            if(typeof opt.success === 'function'){
-                let data = xhr.responseText;
-                if(opt.dataType=="json"){
-                    data=JSON.parse(data);
+        this.xhr = null;
+        this.params = Object.assign(this.defaultOpt,param);
+        //xmlHTTPRequest 请求对象,包含创建和取消两个方法
+        Object.assign(this,{
+            create() {
+                const params = this.params;
+                let xhr = this.xhr = new XMLHttpRequest();
+                //设置请求头
+                for (key in params.header) {
+                    xhr.setRequestHeader(key, params.header[key])
                 }
-                opt.success(data)
-            }else{
-                console.log('请求成功~')
+                const data = this.formartData(params.data)
+                if(params.method.toLowerCase() === 'get'){
+                    params.url += ('?'+ data)
+                    xhr.open(params.method,params.url,params.async)
+                    xhr.send();
+                }else{
+                    xhr.open(params.method,params.url,params.async)
+                    // 请求的请求头
+                    xhr.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+                    xhr.send(data);
+                }
+                xhr.onreadystatechange = function(){
+                    if(xhr.readyState !== 4 || this.isTimeout) return;
+                    clearTimeout(this.timer)
+                    typeof params.complete === 'function' && params.complete(xhr,xhr.statusText) 
+                    if(xhr.status >= 200 && xhr.status <400){
+                        let data = xhr.responseText;
+                        if(params.dataType=="json"){
+                            data=JSON.parse(data);
+                        } 
+                        params.success(data)
+                        
+                    }else{
+                        if(typeof params.error === "function"){
+                            params.error(xhr.status)
+                        }else{
+                            console.log('请求出错~')
+                        }
+                    }
+                }
+            },
+            abort() {
+                this.xhr.abort()
+            },
+            timeout(e) {
+                this.xhr.abort()
+                clearTimeout(this.timer)
+                this.params.error(e)
             }
+        })
+        //如果是jsonp请求则覆盖上面的create/abort/timeout方法
+        if(this.params.dataType.toLowerCase() === 'jsonp'){
+            Object.assign(this,{
+                create() {
+                    const params = this.params
+                    this.script = document.createElement('script');
+                    const data = this.formartData(params.data)
+                    const funNameSuccess = params.jsonpCallback || 'jsonp_callback_' + this.randomString(10)
+                    window[funNameSuccess] = function(data){
+                        clearTimeout(this.timer)
+                        params.success && params.success(data);
+                        document.body.removeChild(this.script)
+                    }
+                    this.script.src = `${params.url}?callback=${funNameSuccess}&${data}`;
+                    document.body.appendChild(this.script);
+                },
+                abort(){
+                    this.params.success = null;
+                },
+                timeout(e) {
+                    this.params.success = null;
+                    document.body.removeChild(this.script)
+                    this.params.error(e)
+                }
+            })
+        }
+        //是否延时发起请求
+        if(this.params.delay > 0){
+            setTimeout(function() {
+                this.create()
+            },this.params.delay)
         }else{
-            if(typeof opt.error === "function"){
-                opt.error(xhr.status)
-            }else{
-                console.log('请求出错~')
-            }
+            this.create()
+        }
+        //是否设置了超时
+        if(this.params.timeout > 0) {
+            this.timer = setTimeout(()=>{
+                this.isTimeout = true
+                this.timeout( new Error('请求超时了'))
+            },this.params.timeout + this.params.delay)
         }
     }
-}
-//处理data入参,支持字符串形式和对象形式
-function formartData(data){
-    if(typeof data === 'object'){
-        let arr = []
-        for(param in data){
-            arr.push(`${param}=${data[param]}`)
+
+    Ajax.prototype = {
+        /**
+         *  @param {object/string} [data] 
+         *  @description 处理data入参,支持字符串形式和对象形式,返回拼接字符串
+         */
+         formartData(data){
+            if(typeof data === 'object'){
+                let arr = []
+                for(param in data){
+                    arr.push(`${param}=${data[param]}`)
+                }
+                data = arr.join('&')
+                return data;
+            }
+        },
+        /**
+        *  @param {number} [len] 字符串长度
+        */
+        randomString(len) {    
+            len = len || 32;
+            var str = "ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678",
+            strLen = str.length,
+            randomStr = "";
+            for (i = 0; i < len; i++) randomStr += str.charAt(Math.floor(Math.random() * strLen));
+            return randomStr
         }
-        data = arr.join('&')
-        return data;
     }
-}
 
-function ajax(option){
-    //默认参数
-    const defaultOpt = {
-        method:'GET',
-        url:'',
-        data:null,
-        dataType:'json',
-        async:true,
-        delay:0,
-        header:{},
-        timeout:30000,
-        success:Function.prototype,
-        error:Function.prototype,
-        complete:Function.prototype
-    }
-    const opt = Object.assign(defaultOpt,option);
-
-    //处理jsonp请求
-    
-    const xhr = new XMLHttpRequest();
-    xhr.timeout = opt.timeout;
-    //设置请求头
-    for (key in opt.header) {
-        xhr.setRequestHeader(key, opt.header[key])
-    }
-    if(opt.delay > 0){ //处理延时请求
-        setTimeout(()=>{
-            if(opt.dataType.toLowerCase() === 'jsonp'){   
-                jsonpFun(opt)
-            }else{
-                request(xhr,opt)
-            }  
-        },opt.delay)
-    }else{
-        if(opt.dataType.toLowerCase() === 'jsonp'){   
-            jsonpFun(opt)
-        }else{
-            request(xhr,opt)
-        } 
-    }
-}
-function jsonpFun(opt){
-    const script = document.createElement('script');
-    const data = formartData(opt.data)
-    const funNameSuccess = randomString(10)
-    window[funNameSuccess] = function(data){
-        opt.success(data);
-    }
-    script.src = `${opt.url}?callback=${funNameSuccess}&${data}`;
-    document.body.appendChild(script);
-}
-/**
- *  @param {number} [len] 字符串长度
- */
-function randomString(len) {    
-    len = len || 32;
-    var str = "ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678",
-    strLen = str.length,
-    randomStr = "";
-    for (i = 0; i < len; i++) randomStr += str.charAt(Math.floor(Math.random() * strLen));
-    return randomStr
+    return new Ajax(param)
 }

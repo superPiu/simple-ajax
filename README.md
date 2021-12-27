@@ -28,3 +28,18 @@
 
 * 类型：Number
 * 延迟发送请求单位为毫秒数。
+
+### timeout
+
+* 类型：Number
+* 超时设置,单位为毫秒数。
+
+### success
+
+* 类型：Function
+* 请求成功调用的方法。
+
+### success
+
+* 类型：Function
+* 请求失败调用的方法。
