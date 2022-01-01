@@ -76,5 +76,5 @@ app.delete('/user',function(req,res,next){
 })
 
 app.listen('5001',() => {
-    console.log("server ok")
+    console.log("file:///Users/sean/workspace/simple-ajax/index.html")
 })

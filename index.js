@@ -1,3 +1,5 @@
+const ajax = require('./utils/ajax')
+console.log(ajax)
 document.getElementById("search").onclick = function(){
     let params = {
         method:"get",
@@ -6,10 +8,13 @@ document.getElementById("search").onclick = function(){
         success:function(res){
             console.log(res)
             alert("请求成功")
+            return res
         }
 
     }
-    ajax(params)
+    ajax(params).then((res)=>{
+        console.log(res)
+    })
 }
 document.getElementById("add").onclick = function(){
     let params = {
@@ -78,5 +83,7 @@ document.getElementById("jsonpGet").onclick = function(){
         }
 
     }
-    ajax(params)
+    ajax(params).then((res)=>{
+        console.log(res)
+    })
 }
