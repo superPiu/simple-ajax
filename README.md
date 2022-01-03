@@ -2,6 +2,7 @@
 参考jQuery Ajax 尝试自己封装一下:
 
 * 新增支持 delay 延迟发送请求
+* 支持then操作
 
 
 ### 参数设置
@@ -43,3 +44,30 @@
 
 * 类型：Function
 * 请求失败调用的方法。
+
+## 安装
+```javascript
+npm install simple-ajax
+```
+
+## 用法示例
+```javascript
+const ajax = require('ajax')
+ ......
+    let params = {
+        method:"get",
+        url:"http://localhost:5001/user/list",
+        data:"pageSize=10&pageNo=1",
+        success:function(res){
+            console.log(res)
+            alert("请求成功")
+            return res
+        }
+
+    }
+    ajax(params).then((res)=>{
+        console.log(res)
+    })
+ ......
+
+```
